@@ -1,10 +1,17 @@
-# Sidereal Vault (archived)
+# ⚠️ ARCHIVED REPOSITORY
 
-**This project has moved.**
+**This repository has been archived and is no longer maintained.**
 
-The active version is now **AlbumOrg**:
+The project was renamed and moved to:
 
-→ **https://github.com/JLARTWORK/albumorg**
-→ **Live demo:** https://albumorg.netlify.app
+**→ New Repository:** https://github.com/JLARTWORK/albumorg
+**→ Live Site:** https://albumorg.netlify.app
 
-The code here is the old "Sidereal Vault" version and is kept only for history.
+Please use the new repository for all future development, issues, and contributions.
+
+---
+
+*Original project name: Sidereal Vault*
+*New project name: AlbumOrg*
+
+This repo is kept only for historical reference and will not receive updates.
