@@ -1,1 +1,1350 @@
-PASTE_FULL_INDEX_HERE
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sidereal Vault • Sore Heart Soar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+  <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+
+    :root {
+      --gold: #c5a46e;
+    }
+
+    body {
+      font-family: 'Inter', system_ui, sans-serif;
+    }
+    
+    .font-display {
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+    }
+
+    .cosmic-bg {
+      background: radial-gradient(circle at 50% 20%, #1a2338 0%, #0f111a 70%);
+    }
+
+    .vault-card {
+      background: #151a28;
+      border: 1px solid #2a3142;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .vault-card:hover {
+      border-color: #3f475a;
+      transform: translateY(-1px);
+    }
+
+    .gold-accent {
+      color: #c5a46e;
+    }
+
+    .section-title {
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-weight: 500;
+      color: #6b7280;
+    }
+
+    .track-row {
+      transition: background-color 0.1s ease;
+    }
+    
+    .track-row:hover {
+      background-color: #1f2535;
+    }
+
+    .track-row.dragging {
+      opacity: 0.6;
+      background-color: #252c40;
+    }
+
+    .cosmic-border {
+      border-image: linear-gradient(to right, #2a3142, #c5a46e20, #2a3142) 1;
+    }
+
+    .modal {
+      animation: modalEnter 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .kintsugi {
+      position: relative;
+    }
+
+    .kintsugi::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        transparent 40%,
+        rgba(197, 164, 110, 0.08) 50%,
+        transparent 60%
+      );
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    .mood-tag {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+      background-color: #1f2535;
+      color: #c5a46e;
+      border: 1px solid #3f475a;
+    }
+
+    .waveform-container {
+      height: 48px;
+    }
+
+    /* Bottom player progress styling */
+    #player-progress {
+      height: 4px;
+      background: #2a3142;
+      border-radius: 9999px;
+      appearance: none;
+    }
+    #player-progress::-webkit-slider-thumb {
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      background: #c5a46e;
+      border-radius: 9999px;
+      cursor: pointer;
+      margin-top: -4px;
+      box-shadow: 0 0 0 3px rgba(197, 164, 110, 0.2);
+    }
+    #player-progress::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      background: #c5a46e;
+      border-radius: 9999px;
+      cursor: pointer;
+      border: none;
+    }
+
+    .nav-active {
+      background-color: #1f2535;
+      color: #c5a46e;
+      border-bottom: 2px solid #c5a46e;
+    }
+
+    .subtle-glow {
+      box-shadow: 0 0 15px -3px rgba(197, 164, 110, 0.1);
+    }
+  </style>
+</head>
+<body class="bg-[#0f111a] text-zinc-200 cosmic-bg min-h-screen">
+  <!-- Top Navigation -->
+  <div class="border-b border-zinc-800 bg-[#0f111a]/95 backdrop-blur-sm sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-x-3">
+          <div class="flex items-center gap-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-[#c5a46e] to-[#8d6f3e] flex items-center justify-center">
+              <i class="fa-solid fa-infinity text-[#0f111a] text-lg"></i>
+            </div>
+            <div>
+              <div class="font-display text-xl tracking-tighter">Sidereal Vault</div>
+              <div class="text-[10px] text-zinc-500 -mt-1">Sore Heart Soar • 2026</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-x-2">
+          <button onclick="enterPreviewMode()" 
+                  class="flex items-center gap-x-2 px-4 py-2 text-sm rounded-2xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 transition-colors">
+            <i class="fa-solid fa-play mr-1"></i>
+            <span>Play Album</span>
+          </button>
+          
+          <div class="flex items-center gap-x-1.5 pl-2 border-l border-zinc-800">
+            <button onclick="exportProject()" 
+                    class="px-3 py-2 text-sm rounded-xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2"
+                    title="Export current track order as text list">
+              <i class="fa-solid fa-download text-xs"></i>
+              <span class="hidden sm:inline">Export List</span>
+            </button>
+
+            <button onclick="resetVault()" 
+                    class="px-3 py-2 text-sm rounded-xl hover:bg-zinc-900 transition-colors flex items-center gap-x-2 text-red-400 hover:text-red-500"
+                    title="Reset vault — delete all tracks permanently">
+              <i class="fa-solid fa-trash text-xs"></i>
+              <span class="hidden sm:inline">Reset</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-6 py-8 pb-24"> <!-- Extra padding for bottom player -->
+    
+    <!-- Album Hero -->
+    <div class="flex flex-col md:flex-row gap-8 mb-10">
+      <!-- Cover Art -->
+      <div class="w-full md:w-72 flex-shrink-0">
+        <div onclick="changeAlbumArt()" 
+             class="group aspect-square rounded-3xl overflow-hidden border border-zinc-700 cursor-pointer relative kintsugi subtle-glow">
+          <img id="album-cover" 
+               src="https://picsum.photos/id/1015/600/600" 
+               class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div class="text-center">
+              <i class="fa-solid fa-image text-2xl mb-2 text-[#c5a46e]"></i>
+              <div class="text-xs tracking-widest">CHANGE ART</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Album Info -->
+      <div class="flex-1 pt-2">
+        <div class="flex items-center gap-x-3 mb-2">
+          <div class="text-4xl font-display tracking-tighter">Sidereal Vault</div>
+          <div class="px-3 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400 self-start mt-2">2026</div>
+        </div>
+        
+        <div class="text-zinc-400 mb-6">Sore Heart Soar — Trip-hop / IDM Concept Album</div>
+
+        <div class="flex items-center gap-x-8 text-sm mb-4">
+          <div>
+            <div class="text-zinc-500 text-xs tracking-widest mb-1">TRACKS</div>
+            <div id="track-count" class="text-2xl font-semibold">0</div>
+          </div>
+          <div>
+            <div class="text-zinc-500 text-xs tracking-widest mb-1">TOTAL TIME</div>
+            <div id="total-duration" class="text-2xl font-semibold">—</div>
+          </div>
+        </div>
+
+        <!-- Album Progress -->
+        <div class="mb-2">
+          <div class="flex items-center justify-between text-xs mb-1">
+            <div class="text-zinc-500 tracking-widest">ALBUM PROGRESS</div>
+            <div id="progress-percent" class="font-mono text-[#c5a46e]">0%</div>
+          </div>
+          <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
+            <div id="progress-bar" 
+                 class="h-2 bg-gradient-to-r from-[#c5a46e] to-[#e8d5a3] transition-all duration-500"
+                 style="width: 0%"></div>
+          </div>
+          <div id="progress-detail" class="text-[10px] text-zinc-500 mt-1">
+            0 / 0 tracks finalized
+          </div>
+        </div>
+
+        <div class="mt-6 flex items-center gap-x-3">
+          <button onclick="enterPreviewMode()" 
+                  class="flex-1 md:flex-none flex items-center justify-center gap-x-2 bg-[#c5a46e] hover:bg-[#b38d55] transition-colors text-[#0f111a] font-semibold px-8 py-3 rounded-2xl">
+            <i class="fa-solid fa-play"></i>
+            <span>Play Full Album</span>
+          </button>
+          <button onclick="showAddTrackModal()" 
+                  class="flex items-center justify-center gap-x-2 border border-zinc-700 hover:bg-zinc-900 transition-colors px-6 py-3 rounded-2xl text-sm">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add Track</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tracklist -->
+    <div class="mb-4 flex items-center justify-between">
+      <div>
+        <div class="section-title mb-1">Tracklist</div>
+        <div class="text-lg font-medium">The Vault</div>
+      </div>
+      <div class="text-xs text-zinc-500">Drag to reorder</div>
+    </div>
+
+    <!-- Tracks Container -->
+    <div id="tracklist" 
+         class="vault-card rounded-3xl overflow-hidden border border-zinc-700">
+      <!-- Populated dynamically -->
+    </div>
+
+    <div id="empty-state" class="hidden text-center py-16">
+      <div class="mx-auto w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center mb-4">
+        <i class="fa-solid fa-music text-xl text-zinc-600"></i>
+      </div>
+      <p class="text-zinc-400">No tracks yet</p>
+      <button onclick="showAddTrackModal()" 
+              class="mt-4 px-5 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-2xl transition-colors">
+        Upload your first track
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Track Edit Modal -->
+  <div id="edit-modal" onclick="if (event.target.id === 'edit-modal') hideEditModal()" 
+       class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div onclick="event.stopImmediatePropagation()" 
+         class="modal vault-card w-full max-w-xl rounded-3xl border border-zinc-700 overflow-hidden">
+      
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-5">
+          <div class="font-medium text-lg">Edit Track</div>
+          <button onclick="hideEditModal()" class="text-zinc-400 hover:text-white">
+            <i class="fa-solid fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Artwork -->
+        <div class="flex gap-6">
+          <div class="flex flex-col items-center">
+            <div onclick="changeTrackArt()" 
+                 ondrop="handleArtworkDrop(event)" ondragover="event.preventDefault()"
+                 class="w-28 h-28 rounded-2xl overflow-hidden border-2 border-dashed border-zinc-600 hover:border-[#c5a46e] cursor-pointer flex-shrink-0 relative group">
+              <img id="modal-artwork" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-center">
+                <i class="fa-solid fa-image text-[#c5a46e]"></i>
+                <div class="text-[10px] mt-1">Change</div>
+              </div>
+            </div>
+            <button onclick="removeTrackArtwork(event)" 
+                    class="mt-1.5 text-[10px] text-red-400 hover:text-red-500">Remove</button>
+          </div>
+
+          <div class="flex-1 space-y-4">
+            <!-- Title -->
+            <div>
+              <label class="text-xs text-zinc-400 block mb-1.5">TITLE</label>
+              <input id="modal-title" type="text" 
+                     class="w-full bg-[#0f111a] border border-zinc-700 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#c5a46e]">
+            </div>
+
+            <!-- Custom Mood + BPM -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs text-zinc-400 block mb-1.5">MOOD / VIBE</label>
+                <input id="modal-mood" type="text" placeholder="e.g. Melancholic, Fractured"
+                       class="w-full bg-[#0f111a] border border-zinc-700 rounded-2xl px-4 py-2 text-sm focus:outline-none focus:border-[#c5a46e]">
+              </div>
+              <div>
+                <label class="text-xs text-zinc-400 block mb-1.5">BPM</label>
+                <input id="modal-bpm" type="number" placeholder="92" min="40" max="200"
+                       class="w-full bg-[#0f111a] border border-zinc-700 rounded-2xl px-4 py-2 text-sm focus:outline-none focus:border-[#c5a46e]">
+              </div>
+            </div>
+
+            <!-- Track Status -->
+            <div>
+              <label class="text-xs text-zinc-400 block mb-1.5">STATUS</label>
+              <select id="modal-status" 
+                      class="w-full bg-[#0f111a] border border-zinc-700 rounded-2xl px-4 py-2 text-sm focus:outline-none focus:border-[#c5a46e]">
+                <option value="idea">Idea</option>
+                <option value="in-progress">In Progress</option>
+                <option value="mixed">Mixed</option>
+                <option value="mastered">Mastered</option>
+                <option value="final">Final</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="mt-6">
+          <label class="text-xs text-zinc-400 block mb-1.5">NOTES</label>
+          <textarea id="modal-notes" rows="5" 
+                    placeholder="Lyrics, Suno prompts, production ideas, emotional direction..."
+                    class="w-full bg-[#0f111a] border border-zinc-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-[#c5a46e] resize-y"></textarea>
+        </div>
+
+        <!-- Audio Re-upload (shown when audio is missing) -->
+        <div id="audio-reupload-section" class="mt-4 hidden">
+          <label class="text-xs text-zinc-400 block mb-1.5">AUDIO FILE (missing after refresh)</label>
+          <button onclick="reuploadAudioForCurrentTrack()" 
+                  class="w-full py-2.5 text-sm border border-dashed border-zinc-600 hover:border-[#c5a46e] rounded-2xl transition-colors">
+            <i class="fa-solid fa-upload mr-2"></i> Re-upload Audio for this Track
+          </button>
+        </div>
+      </div>
+
+      <div class="border-t border-zinc-700 px-6 py-4 flex justify-between items-center bg-[#0f111a]">
+        <button onclick="deleteCurrentTrack()" 
+                class="text-red-400 hover:text-red-500 flex items-center gap-x-2 text-sm">
+          <i class="fa-solid fa-trash"></i>
+          <span>Delete Track</span>
+        </button>
+        
+        <button onclick="saveTrackEdits()" 
+                class="px-6 py-2 bg-[#c5a46e] hover:bg-[#b38d55] transition-colors text-[#0f111a] font-semibold rounded-2xl text-sm">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Album Preview Modal -->
+  <div id="preview-modal" onclick="if (event.target.id === 'preview-modal') exitPreviewMode()" 
+       class="hidden fixed inset-0 bg-black/90 z-[110] flex items-center justify-center p-6">
+    <div onclick="event.stopImmediatePropagation()" class="w-full max-w-3xl">
+      
+      <div class="flex justify-between items-center mb-6 px-2">
+        <div>
+          <div class="font-display text-2xl tracking-tighter">Sidereal Vault</div>
+          <div class="text-xs text-zinc-500">Full Album Preview</div>
+        </div>
+        <button onclick="exitPreviewMode()" class="text-zinc-400 hover:text-white px-4 py-2">
+          <i class="fa-solid fa-times text-xl"></i>
+        </button>
+      </div>
+
+      <div id="preview-player" class="vault-card rounded-3xl p-6 border border-zinc-700">
+        <!-- Preview player content populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Persistent Bottom Media Player -->
+  <div id="bottom-player" 
+       class="hidden fixed bottom-0 left-0 right-0 bg-[#151a28] border-t border-zinc-700 z-[120] px-4 py-3">
+    <div class="max-w-6xl mx-auto flex items-center gap-4">
+      
+      <!-- Track Info -->
+      <div class="flex items-center gap-3 min-w-0 w-64">
+        <div onclick="editTrack(currentPlayingId)" class="w-11 h-11 rounded-xl overflow-hidden border border-zinc-600 cursor-pointer flex-shrink-0">
+          <img id="player-artwork" src="https://picsum.photos/id/1015/100/100" class="w-full h-full object-cover">
+        </div>
+        <div class="min-w-0 flex-1">
+          <div id="player-title" class="font-medium text-sm truncate cursor-pointer" onclick="editTrack(currentPlayingId)">No track</div>
+          <div id="player-meta" class="text-[10px] text-[#c5a46e] flex items-center gap-x-2">
+            <span id="player-bpm"></span>
+            <span id="player-mood"></span>
+            <span id="player-status" class="text-zinc-400"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button onclick="playPrevious()" class="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+          <i class="fa-solid fa-step-backward"></i>
+        </button>
+        <button onclick="toggleGlobalPlayback()" id="player-play-btn"
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-[#c5a46e] text-[#0f111a] hover:bg-[#b38d55] transition-colors">
+          <i class="fa-solid fa-play text-sm ml-0.5" id="player-play-icon"></i>
+        </button>
+        <button onclick="playNext()" class="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+          <i class="fa-solid fa-step-forward"></i>
+        </button>
+      </div>
+
+      <!-- Progress -->
+      <div class="flex-1 flex items-center gap-3 min-w-0">
+        <div id="player-current-time" class="text-xs font-mono text-zinc-400 w-10 text-right">0:00</div>
+        
+        <div class="flex-1 relative">
+          <input type="range" id="player-progress" 
+                 class="w-full accent-[#c5a46e] cursor-pointer" 
+                 min="0" max="100" step="0.1" value="0"
+                 oninput="seekToPercent(this.value)"
+                 onchange="seekToPercent(this.value)">
+          <div class="absolute top-1/2 left-0 h-1 bg-[#c5a46e] rounded-full pointer-events-none" 
+               id="player-progress-fill" style="width: 0%"></div>
+        </div>
+        
+        <div id="player-duration" class="text-xs font-mono text-zinc-400 w-10">0:00</div>
+      </div>
+
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button onclick="stopGlobalPlayback()" 
+                class="text-zinc-400 hover:text-red-400 px-3 py-1 text-xs rounded-xl hover:bg-zinc-800 transition-colors">
+          <i class="fa-solid fa-stop mr-1"></i> Stop
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // SIDEREAL VAULT — Album Management App
+    // Single-file local-first web app (Tailwind + Vanilla JS)
+    // ============================================================
+
+    // ---------------- Initial Setup ----------------
+    function initTailwind() {
+      document.documentElement.style.setProperty('--accent-gold', '#c5a46e');
+    }
+
+    let tracks = [];
+    let currentEditId = null;
+    let previewWavesurfer = null;
+    let previewIndex = 0;
+
+    // Global Audio Player
+    let globalAudio = null;
+    let currentPlayingId = null;
+    let isGlobalPlaying = false;
+    let currentAudioBlobUrl = null;   // Track the active blob URL so we can revoke it safely
+
+    const STORAGE_KEY = 'sidereal-vault-v1';
+
+    // ---------------- Constants & Config ----------------
+    // Track status options with completion weights
+    const STATUS_OPTIONS = {
+      "idea":        { label: "Idea",        weight: 0 },
+      "in-progress": { label: "In Progress", weight: 25 },
+      "mixed":       { label: "Mixed",       weight: 50 },
+      "mastered":    { label: "Mastered",    weight: 75 },
+      "final":       { label: "Final",       weight: 100 }
+    };
+
+    // ---------------- Data Persistence ----------------
+    // Note: Full audio files are kept only in memory during the session.
+    // They are excluded from localStorage to avoid quota errors.
+    // Metadata, artwork, BPM, mood, and status *are* persisted.
+    function loadData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const loaded = JSON.parse(saved);
+          // Restore tracks without audioData (they will need re-uploading after refresh)
+          tracks = loaded.map(t => ({
+            ...t,
+            audioData: null,     // audio is not persisted
+            audioType: null,
+            status: t.status || 'idea'
+          }));
+        } catch (e) {
+          console.warn("Failed to load saved data");
+          tracks = [];
+        }
+      }
+    }
+
+    function saveData() {
+      // We intentionally do NOT save the large audioData blobs to localStorage
+      // because it easily exceeds the ~5-10MB quota.
+      // Only metadata + small artwork is persisted.
+      const safeTracks = tracks.map(t => {
+        const { audioData, audioType, ...rest } = t;
+        return rest;   // audioData is excluded
+      });
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(safeTracks));
+      } catch (e) {
+        console.warn("Could not save to localStorage (possibly too much data):", e);
+      }
+    }
+
+    // ---------------- Rendering & UI ----------------
+    // Render the entire tracklist
+    function renderTracklist() {
+      const container = document.getElementById('tracklist');
+      const empty = document.getElementById('empty-state');
+
+      if (tracks.length === 0) {
+        container.innerHTML = '';
+        empty.classList.remove('hidden');
+        updateStats();
+        return;
+      }
+      empty.classList.add('hidden');
+
+      container.innerHTML = `
+        <div class="divide-y divide-zinc-700" id="sortable-tracks">
+          ${tracks.map((track, index) => createTrackHTML(track, index)).join('')}
+        </div>
+      `;
+
+      // Initialize drag and drop
+      initSortable();
+
+      // Note: Mini waveforms removed for simplicity. Global bottom player is primary.
+      updateStats();
+    }
+
+    function createTrackHTML(track, index) {
+      // Show mood under title (BPM is shown as prominent badge on the right)
+      const metaLine = track.mood 
+        ? `<div class="text-[10px] text-[#c5a46e] mt-0.5">${track.mood}</div>` 
+        : '';
+
+      return `
+        <div class="track-row group flex items-center px-6 py-4 gap-4 cursor-pointer" 
+             data-id="${track.id}" onclick="playTrack('${track.id}')">
+          
+          <!-- Number -->
+          <div class="w-8 text-right font-mono text-lg text-zinc-400 select-none">${String(index + 1).padStart(2, '0')}</div>
+
+          <!-- Artwork -->
+          <div class="w-12 h-12 rounded-2xl overflow-hidden border border-zinc-600 flex-shrink-0">
+            <img src="${track.artwork || 'https://picsum.photos/id/1015/100/100'}" 
+                 class="w-full h-full object-cover">
+          </div>
+
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <div class="font-medium truncate">${track.title || 'Untitled Track'}</div>
+            ${metaLine}
+          </div>
+
+          <!-- BPM (prominent) + Status + Duration + Actions -->
+          <div class="flex items-center gap-2 flex-shrink-0">
+            ${track.bpm ? `
+              <div class="px-2.5 py-1 text-xs font-semibold rounded-xl bg-[#c5a46e] text-[#0f111a] min-w-[42px] text-center">
+                ${track.bpm}
+              </div>` : ''}
+
+            ${track.status ? `
+              <div class="text-[9px] px-2 py-0.5 rounded-lg border border-zinc-600 text-zinc-400 whitespace-nowrap">
+                ${STATUS_OPTIONS[track.status] ? STATUS_OPTIONS[track.status].label : track.status}
+              </div>` : ''}
+
+            <div class="text-xs text-zinc-400 w-11 text-right font-mono">
+              ${track.duration || '—'}
+            </div>
+
+            <button onclick="event.stopImmediatePropagation(); playTrack('${track.id}')" 
+                    class="w-9 h-9 rounded-2xl ${track.audioData ? 'bg-zinc-700 hover:bg-[#c5a46e] hover:text-[#0f111a]' : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'} flex items-center justify-center transition-colors">
+              <i class="fa-solid fa-play text-xs ml-0.5"></i>
+            </button>
+
+            <button onclick="event.stopImmediatePropagation(); editTrack('${track.id}')" 
+                    class="w-9 h-9 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 flex items-center justify-center transition-colors text-xs">
+              <i class="fa-solid fa-edit"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function initSortable() {
+      const el = document.getElementById('sortable-tracks');
+      if (!el) return;
+
+      new Sortable(el, {
+        animation: 180,
+        ghostClass: 'dragging',
+        onEnd: function(evt) {
+          const newOrder = [];
+          el.querySelectorAll('[data-id]').forEach((node, i) => {
+            const id = node.dataset.id;
+            const track = tracks.find(t => t.id === id);
+            if (track) newOrder.push(track);
+          });
+          tracks = newOrder;
+          saveData();
+          renderTracklist(); // re-render to update numbers
+        }
+      });
+    }
+
+    // Helper to convert base64 back to blob
+    function base64ToBlob(base64, contentType) {
+      const byteCharacters = atob(base64.split(',')[1]);
+      const byteArrays = [];
+      for (let i = 0; i < byteCharacters.length; i += 512) {
+        const slice = byteCharacters.slice(i, i + 512);
+        const byteNumbers = new Array(slice.length);
+        for (let j = 0; j < slice.length; j++) {
+          byteNumbers[j] = slice.charCodeAt(j);
+        }
+        byteArrays.push(new Uint8Array(byteNumbers));
+      }
+      return new Blob(byteArrays, { type: contentType });
+    }
+
+    function updateStats() {
+      document.getElementById('track-count').textContent = tracks.length;
+
+      let totalSeconds = 0;
+      tracks.forEach(t => {
+        if (t.duration) {
+          const parts = t.duration.split(':');
+          if (parts.length === 2) {
+            totalSeconds += parseInt(parts[0]) * 60 + parseInt(parts[1]);
+          }
+        }
+      });
+
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      document.getElementById('total-duration').textContent = 
+        tracks.length > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : '—';
+
+      // === Album Progress Calculation ===
+      if (tracks.length === 0) {
+        document.getElementById('progress-percent').textContent = '0%';
+        document.getElementById('progress-bar').style.width = '0%';
+        document.getElementById('progress-detail').textContent = '0 / 0 tracks finalized';
+        return;
+      }
+
+      let totalWeight = 0;
+      let finalizedCount = 0;
+
+      tracks.forEach(track => {
+        const status = track.status || 'idea';
+        const weight = STATUS_OPTIONS[status] ? STATUS_OPTIONS[status].weight : 0;
+        totalWeight += weight;
+
+        if (status === 'final') finalizedCount++;
+      });
+
+      const avgCompletion = Math.round(totalWeight / tracks.length);
+      const percent = Math.min(100, Math.max(0, avgCompletion));
+
+      document.getElementById('progress-percent').textContent = `${percent}%`;
+      document.getElementById('progress-bar').style.width = `${percent}%`;
+      document.getElementById('progress-detail').textContent = 
+        `${finalizedCount} / ${tracks.length} tracks finalized`;
+    }
+
+    // Add new track
+    function showAddTrackModal() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'audio/*';
+      
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const audioURL = URL.createObjectURL(file);
+        const audio = new Audio(audioURL);
+
+        audio.onloadedmetadata = async () => {
+          const duration = formatDuration(audio.duration);
+          const base64Audio = await fileToBase64(file);
+
+          const newTrack = {
+            id: 'track_' + Date.now(),
+            title: file.name.replace(/\.[^/.]+$/, ""),
+            duration: duration,
+            audioData: base64Audio,
+            audioType: file.type,
+            artwork: null,
+            notes: '',
+            mood: null,
+            bpm: null,
+            status: 'idea'
+          };
+
+          tracks.push(newTrack);
+          saveData();
+          renderTracklist();
+
+          // Show a helpful message about audio persistence
+          showToast("Track added. Note: Audio files are kept in memory only during this session.");
+        };
+      };
+
+      input.click();
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function formatDuration(seconds) {
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    // Edit track
+    function editTrack(id) {
+      const track = tracks.find(t => t.id === id);
+      if (!track) return;
+
+      currentEditId = id;
+
+      document.getElementById('modal-title').value = track.title || '';
+      document.getElementById('modal-notes').value = track.notes || '';
+      document.getElementById('modal-artwork').src = track.artwork || 'https://picsum.photos/id/1015/200/200';
+
+      // New fields: Custom Mood + BPM
+      document.getElementById('modal-mood').value = track.mood || '';
+      document.getElementById('modal-bpm').value = track.bpm || '';
+
+      // Track Status
+      document.getElementById('modal-status').value = track.status || 'idea';
+
+      // Show re-upload audio section if this track has no audio
+      const reuploadSection = document.getElementById('audio-reupload-section');
+      if (reuploadSection) {
+        reuploadSection.classList.toggle('hidden', !!track.audioData);
+      }
+
+      document.getElementById('edit-modal').classList.remove('hidden');
+      document.getElementById('edit-modal').classList.add('flex');
+    }
+
+    // Mood selection was replaced with free-text "mood" + "bpm" fields
+
+    function saveTrackEdits() {
+      const track = tracks.find(t => t.id === currentEditId);
+      if (!track) return;
+
+      track.title = document.getElementById('modal-title').value.trim();
+      track.notes = document.getElementById('modal-notes').value.trim();
+
+      // New fields
+      track.mood = document.getElementById('modal-mood').value.trim() || null;
+      const bpmValue = document.getElementById('modal-bpm').value.trim();
+      track.bpm = bpmValue ? parseInt(bpmValue, 10) : null;
+      track.status = document.getElementById('modal-status').value || 'idea';
+
+      saveData();
+      hideEditModal();
+      renderTracklist();
+    }
+
+    function hideEditModal() {
+      document.getElementById('edit-modal').classList.remove('flex');
+      document.getElementById('edit-modal').classList.add('hidden');
+      currentEditId = null;
+    }
+
+    async function changeTrackArt() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const base64 = await fileToBase64(file);
+        const track = tracks.find(t => t.id === currentEditId);
+        if (track) {
+          track.artwork = base64;
+          document.getElementById('modal-artwork').src = base64;
+        }
+      };
+      input.click();
+    }
+
+    function deleteCurrentTrack() {
+      if (!confirm('Delete this track?')) return;
+
+      tracks = tracks.filter(t => t.id !== currentEditId);
+      saveData();
+      hideEditModal();
+      renderTracklist();
+    }
+
+    // ---------------- Global Audio Player (Bottom Bar) ----------------
+    function loadTrackIntoPlayer(trackId, autoPlay = true) {
+      const track = tracks.find(t => t.id === trackId);
+      if (!track) return;
+
+      if (!track.audioData) {
+        alert("This track is missing its audio file (it was not saved after page refresh).\n\nPlease edit the track and re-upload the audio.");
+        editTrack(trackId);
+        return;
+      }
+
+      // Clean up any previous blob URL before creating a new one
+      if (currentAudioBlobUrl) {
+        URL.revokeObjectURL(currentAudioBlobUrl);
+        currentAudioBlobUrl = null;
+      }
+
+      // Stop any existing playback
+      if (globalAudio) {
+        globalAudio.pause();
+        globalAudio.src = '';
+      }
+
+      // Create or reuse global audio element
+      if (!globalAudio) {
+        globalAudio = new Audio();
+        
+        globalAudio.ontimeupdate = updatePlayerProgress;
+        globalAudio.onended = () => {
+          // Revoke the blob URL for the track that just finished
+          if (currentAudioBlobUrl) {
+            URL.revokeObjectURL(currentAudioBlobUrl);
+            currentAudioBlobUrl = null;
+          }
+          playNext(); // Auto-advance to next track
+        };
+        globalAudio.onpause = () => {
+          isGlobalPlaying = false;
+          updatePlayerPlayIcon();
+        };
+        globalAudio.onplay = () => {
+          isGlobalPlaying = true;
+          updatePlayerPlayIcon();
+        };
+      }
+
+      const audioBlob = base64ToBlob(track.audioData, track.audioType || 'audio/mpeg');
+      const url = URL.createObjectURL(audioBlob);
+      currentAudioBlobUrl = url;
+
+      globalAudio.src = url;
+      currentPlayingId = trackId;
+
+      // Update bottom player UI
+      updateBottomPlayerUI(track);
+
+      const player = document.getElementById('bottom-player');
+      player.classList.remove('hidden');
+      player.classList.add('flex');
+      // Force reflow in case Tailwind hidden is sticky
+      void player.offsetWidth;
+
+      if (autoPlay) {
+        globalAudio.play().catch(err => console.log('Playback prevented:', err));
+      }
+    }
+
+    function updateBottomPlayerUI(track) {
+      document.getElementById('player-title').textContent = track.title || 'Untitled';
+      document.getElementById('player-artwork').src = track.artwork || 'https://picsum.photos/id/1015/100/100';
+      
+      // BPM + Mood + Status in bottom player
+      const bpmEl = document.getElementById('player-bpm');
+      const moodEl = document.getElementById('player-mood');
+      const statusEl = document.getElementById('player-status');
+
+      if (bpmEl) bpmEl.textContent = track.bpm ? `${track.bpm} BPM` : '';
+      if (moodEl) moodEl.textContent = track.mood || '';
+      if (statusEl) {
+        const statusInfo = STATUS_OPTIONS[track.status] || {};
+        statusEl.textContent = statusInfo.label ? `• ${statusInfo.label}` : '';
+      }
+
+      // Set duration once metadata is ready
+      if (globalAudio) {
+        globalAudio.onloadedmetadata = () => {
+          document.getElementById('player-duration').textContent = formatDuration(globalAudio.duration);
+          // Also update the stored duration if it was missing
+          if (!track.duration || track.duration === '0:00') {
+            track.duration = formatDuration(globalAudio.duration);
+            saveData();
+            renderTracklist();
+          }
+        };
+      }
+    }
+
+    function toggleGlobalPlayback() {
+      if (!globalAudio || !currentPlayingId) return;
+
+      if (globalAudio.paused) {
+        globalAudio.play();
+      } else {
+        globalAudio.pause();
+      }
+    }
+
+    function updatePlayerProgress() {
+      if (!globalAudio || !currentPlayingId) return;
+
+      const percent = (globalAudio.currentTime / globalAudio.duration) * 100 || 0;
+      
+      const progressInput = document.getElementById('player-progress');
+      const progressFill = document.getElementById('player-progress-fill');
+      
+      if (progressInput) progressInput.value = percent;
+      if (progressFill) progressFill.style.width = `${percent}%`;
+
+      document.getElementById('player-current-time').textContent = formatDuration(globalAudio.currentTime);
+      
+      // Update duration display if not set yet
+      const durEl = document.getElementById('player-duration');
+      if (durEl && durEl.textContent === '0:00' && globalAudio.duration) {
+        durEl.textContent = formatDuration(globalAudio.duration);
+      }
+    }
+
+    function seekToPercent(percent) {
+      if (!globalAudio) return;
+      const seekTime = (percent / 100) * globalAudio.duration;
+      globalAudio.currentTime = seekTime;
+    }
+
+    function playNext() {
+      if (!currentPlayingId) return;
+      
+      const currentIndex = tracks.findIndex(t => t.id === currentPlayingId);
+      if (currentIndex === -1) return;
+
+      const nextIndex = (currentIndex + 1) % tracks.length;
+      loadTrackIntoPlayer(tracks[nextIndex].id, true);
+    }
+
+    function playPrevious() {
+      if (!currentPlayingId) return;
+      
+      const currentIndex = tracks.findIndex(t => t.id === currentPlayingId);
+      if (currentIndex === -1) return;
+
+      const prevIndex = (currentIndex - 1 + tracks.length) % tracks.length;
+      loadTrackIntoPlayer(tracks[prevIndex].id, true);
+    }
+
+    function stopGlobalPlayback() {
+      if (globalAudio) {
+        globalAudio.pause();
+        globalAudio.currentTime = 0;
+      }
+
+      // Revoke the blob URL when the user explicitly stops playback
+      if (currentAudioBlobUrl) {
+        URL.revokeObjectURL(currentAudioBlobUrl);
+        currentAudioBlobUrl = null;
+      }
+
+      const player = document.getElementById('bottom-player');
+      player.classList.remove('flex');
+      player.classList.add('hidden');
+      
+      currentPlayingId = null;
+      isGlobalPlaying = false;
+    }
+
+    function updatePlayerPlayIcon() {
+      const icon = document.getElementById('player-play-icon');
+      if (!icon) return;
+
+      if (isGlobalPlaying) {
+        icon.classList.remove('fa-play');
+        icon.classList.add('fa-pause');
+      } else {
+        icon.classList.remove('fa-pause');
+        icon.classList.add('fa-play');
+      }
+    }
+
+    // Make track rows load into the persistent player
+    function playTrack(id) {
+      loadTrackIntoPlayer(id, true);
+    }
+
+    // ---------------- Full Album Preview Mode ----------------
+    function enterPreviewMode() {
+      if (tracks.length === 0) {
+        alert("Add some tracks first.");
+        return;
+      }
+
+      const modal = document.getElementById('preview-modal');
+      const playerContainer = document.getElementById('preview-player');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      previewIndex = 0;
+      renderPreviewPlayer(playerContainer);
+    }
+
+    function renderPreviewPlayer(container) {
+      const track = tracks[previewIndex];
+      if (!track) return;
+
+      container.innerHTML = `
+        <div class="flex items-center gap-5">
+          <div class="w-20 h-20 rounded-2xl overflow-hidden border border-zinc-600 flex-shrink-0">
+            <img src="${track.artwork || 'https://picsum.photos/id/1015/200/200'}" class="w-full h-full object-cover">
+          </div>
+          
+          <div class="flex-1 min-w-0">
+            <div class="text-sm text-zinc-400">Track ${previewIndex + 1} of ${tracks.length}</div>
+            <div class="text-xl font-medium truncate">${track.title}</div>
+            
+            <div class="mt-4">
+              <div id="preview-waveform" class="h-12"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-center gap-4 mt-6">
+          <button onclick="previewPrevious()" class="w-11 h-11 flex items-center justify-center text-lg hover:text-[#c5a46e]">
+            <i class="fa-solid fa-step-backward"></i>
+          </button>
+          <button onclick="togglePreviewPlayback()" id="preview-play-btn"
+                  class="w-14 h-14 flex items-center justify-center rounded-full bg-[#c5a46e] text-[#0f111a] text-xl">
+            <i class="fa-solid fa-play ml-0.5" id="preview-play-icon"></i>
+          </button>
+          <button onclick="previewNext()" class="w-11 h-11 flex items-center justify-center text-lg hover:text-[#c5a46e]">
+            <i class="fa-solid fa-step-forward"></i>
+          </button>
+        </div>
+      `;
+
+      // Load waveform
+      setTimeout(() => {
+        initPreviewWaveform(track);
+      }, 50);
+    }
+
+    function initPreviewWaveform(track) {
+      if (previewWavesurfer) previewWavesurfer.destroy();
+
+      const container = document.getElementById('preview-waveform');
+      if (!container || !track.audioData) return;
+
+      const audioBlob = base64ToBlob(track.audioData, track.audioType);
+      const url = URL.createObjectURL(audioBlob);
+
+      previewWavesurfer = WaveSurfer.create({
+        container: container,
+        waveColor: '#4b5563',
+        progressColor: '#c5a46e',
+        height: 48,
+        barWidth: 2,
+        barGap: 2,
+        cursorWidth: 2,
+        cursorColor: '#c5a46e',
+      });
+
+      previewWavesurfer.load(url);
+    }
+
+    function togglePreviewPlayback() {
+      if (!previewWavesurfer) return;
+
+      const icon = document.getElementById('preview-play-icon');
+      
+      if (previewWavesurfer.isPlaying()) {
+        previewWavesurfer.pause();
+        icon.classList.remove('fa-pause');
+        icon.classList.add('fa-play');
+      } else {
+        previewWavesurfer.play();
+        icon.classList.remove('fa-play');
+        icon.classList.add('fa-pause');
+      }
+    }
+
+    function previewNext() {
+      previewIndex = (previewIndex + 1) % tracks.length;
+      const container = document.getElementById('preview-player');
+      renderPreviewPlayer(container);
+    }
+
+    function previewPrevious() {
+      previewIndex = (previewIndex - 1 + tracks.length) % tracks.length;
+      const container = document.getElementById('preview-player');
+      renderPreviewPlayer(container);
+    }
+
+    function exitPreviewMode() {
+      const modal = document.getElementById('preview-modal');
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+
+      if (previewWavesurfer) {
+        previewWavesurfer.destroy();
+        previewWavesurfer = null;
+      }
+    }
+
+    // ============================================================
+    // Export current arrangement as a simple text list (.txt)
+    // ============================================================
+
+    function exportProject() {
+      if (tracks.length === 0) {
+        alert("Add some tracks first before exporting the arrangement.");
+        return;
+      }
+
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0];
+
+      let lines = [];
+      lines.push("Sidereal Vault — Current Arrangement");
+      lines.push("Sore Heart Soar • 2026");
+      lines.push(`Exported: ${dateStr}`);
+      lines.push("");
+      lines.push(`${String(tracks.length).padStart(2, '0')} tracks in current order`);
+      lines.push("");
+
+      tracks.forEach((track, i) => {
+        const num = String(i + 1).padStart(2, '0');
+        const title = (track.title || "Untitled Track").padEnd(32, " ");
+        const bpm = track.bpm ? `${track.bpm} BPM` : "— BPM   ";
+        const dur = track.duration || "—:--";
+
+        // Clean format: 01. Title                              92 BPM    3:45
+        lines.push(`${num}. ${title}  ${bpm.padEnd(10, " ")}  ${dur}`);
+      });
+
+      const text = lines.join("\n");
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sidereal-vault-arrangement.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showToast("Arrangement list exported as .txt");
+    }
+
+    function resetVault() {
+      if (tracks.length === 0 && !localStorage.getItem(STORAGE_KEY)) {
+        showToast("Vault is already empty");
+        return;
+      }
+
+      if (!confirm("Reset the entire vault?\n\nThis will permanently delete all tracks and cannot be undone.")) {
+        return;
+      }
+
+      // Clear in-memory data
+      tracks = [];
+
+      // Clear persisted data
+      localStorage.removeItem(STORAGE_KEY);
+
+      // Stop any active playback and hide bottom player
+      if (globalAudio) {
+        globalAudio.pause();
+        globalAudio.src = '';
+      }
+
+      // Revoke any active audio blob URL
+      if (currentAudioBlobUrl) {
+        URL.revokeObjectURL(currentAudioBlobUrl);
+        currentAudioBlobUrl = null;
+      }
+
+      const player = document.getElementById('bottom-player');
+      if (player) {
+        player.classList.remove('flex');
+        player.classList.add('hidden');
+      }
+      currentPlayingId = null;
+      isGlobalPlaying = false;
+
+      // Reset album cover to default
+      const albumCover = document.getElementById('album-cover');
+      if (albumCover) {
+        albumCover.src = 'https://picsum.photos/id/1015/600/600';
+      }
+
+      renderTracklist();
+      showToast("Vault has been reset");
+    }
+
+    function changeAlbumArt() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const base64 = await fileToBase64(file);
+        document.getElementById('album-cover').src = base64;
+      };
+      input.click();
+    }
+
+    // ---------------- Utility Functions ----------------
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-6 left-1/2 -translate-x/2 bg-zinc-800 border border-zinc-700 text-sm px-5 py-3 rounded-2xl shadow-xl';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.transition = 'all 0.3s ease';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 2200);
+    }
+
+    // Initialize everything
+    function init() {
+      initTailwind();
+      loadData();
+      renderTracklist();
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.key === ' ' && document.activeElement.tagName === 'BODY') {
+          e.preventDefault();
+          if (tracks.length > 0) {
+            playTrack(tracks[0].id);
+          }
+        }
+      });
+    }
+
+    // Drag & drop artwork in modal
+    function handleArtworkDrop(e) {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (!file || !file.type.startsWith('image/')) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target.result;
+        const track = tracks.find(t => t.id === currentEditId);
+        if (track) {
+          track.artwork = base64;
+          document.getElementById('modal-artwork').src = base64;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeTrackArtwork(e) {
+      e.stopImmediatePropagation();
+      const track = tracks.find(t => t.id === currentEditId);
+      if (track) {
+        track.artwork = null;
+        document.getElementById('modal-artwork').src = 'https://picsum.photos/id/1015/200/200';
+      }
+    }
+
+    function reuploadAudioForCurrentTrack() {
+      if (!currentEditId) return;
+
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'audio/*';
+
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const audioURL = URL.createObjectURL(file);
+        const audio = new Audio(audioURL);
+
+        audio.onloadedmetadata = async () => {
+          const base64Audio = await fileToBase64(file);
+          const track = tracks.find(t => t.id === currentEditId);
+          
+          if (track) {
+            track.audioData = base64Audio;
+            track.audioType = file.type;
+            track.duration = formatDuration(audio.duration);
+            
+            saveData();
+            hideEditModal();
+            renderTracklist();
+            showToast("Audio re-attached successfully");
+          }
+        };
+      };
+
+      input.click();
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
